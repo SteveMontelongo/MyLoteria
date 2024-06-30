@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.myloteria.Cards
 import com.example.myloteria.model.Card
+import java.util.*
 
 class HomeViewModel : ViewModel() {
 
@@ -51,7 +52,21 @@ class HomeViewModel : ViewModel() {
         drawCard()
     }
 
-    fun shuffle(){
+    fun shuffleCards(){
+        var tempStack: Stack<Card> = Stack()
 
+        while(usedCards.value!!.size >0){
+            cards.value!!.add(usedCards.value!![usedCards.value!!.size - 1])
+            usedCards.value!!.remove(usedCards.value!![usedCards.value!!.size - 1])
+        }
+
+        while(cards.value!!.size > 0){
+            val indexSel = (0.. cards.value!!.size -1).random()
+            tempStack.add(cards.value!![indexSel])
+            cards.value!!.removeAt(indexSel)
+        }
+        while(!tempStack.isEmpty()){
+            cards.value!!.add(tempStack.pop())
+        }
     }
 }

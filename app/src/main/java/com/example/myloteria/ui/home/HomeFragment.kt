@@ -54,8 +54,21 @@ class HomeFragment : Fragment() {
                 binding.history4.setImageResource(if(it.size > 1) it[it.size - 2].image else R.drawable.card_back)
             }
         }
+        binding.shuffle.setOnClickListener{ view ->
+            Snackbar.make(view, "Shuffled", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show()
+            homeViewModel.shuffleCards()
 
+            binding.card.setImageResource(R.drawable.card_back)
 
+            homeViewModel.usedCards.observe(viewLifecycleOwner) {
+                binding.history1.setImageResource(if(it.size > 4) it[it.size - 5].image else R.drawable.card_back)
+                binding.history2.setImageResource(if(it.size > 3) it[it.size - 4].image else R.drawable.card_back)
+                binding.history3.setImageResource(if(it.size > 2) it[it.size - 3].image else R.drawable.card_back)
+                binding.history4.setImageResource(if(it.size > 1) it[it.size - 2].image else R.drawable.card_back)
+            }
+
+        }
     }
 
     override fun onDestroyView() {
