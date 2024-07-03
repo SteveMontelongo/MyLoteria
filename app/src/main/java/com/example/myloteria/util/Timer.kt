@@ -35,7 +35,7 @@ class Timer(private val onTick: () -> Unit) {
 
     fun startTimer() {
         Log.d("Timer", "Timer started.")
-        timer = startCoroutineTimer(delayMillis = 0, repeatMillis = 2000) {
+        timer = startCoroutineTimer(delayMillis = 0, repeatMillis = 5000) {
             Log.d("Timer", "Background - tick")
             // Do something in the background
             scope.launch(Dispatchers.Main) {

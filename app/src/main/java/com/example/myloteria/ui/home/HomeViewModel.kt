@@ -11,7 +11,7 @@ import java.util.*
 import com.example.myloteria.util.Timer
 
 class HomeViewModel() : ViewModel() {
-
+    var initialCardPlay = true
     private var _cards = MutableLiveData<MutableList<Card>>().apply {
         value = emptyList<Card>().toMutableList()
     }
@@ -74,19 +74,23 @@ class HomeViewModel() : ViewModel() {
 
     fun play(): Boolean{
         if(!playState){
-            timer = Timer(){
-                drawCard()
-            }
             timer.startTimer()
         }else{
             timer.cancelTimer()
         }
         playState = !playState
         Log.d("HomeViewModel", "Play")
+        initialCardPlay = false
         return playState
     }
 
+
     fun shuffleCards(){
+        if(initialCardPlay == false){
+            timer.cancelTimer()
+            playState = false
+        }
+        initialCardPlay = true
         var tempStack: Stack<Card> = Stack()
         while(_usedCards.size >0){
             cards.value!!.add(_usedCards[_usedCards.size - 1])

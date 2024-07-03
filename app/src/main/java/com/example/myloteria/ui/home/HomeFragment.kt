@@ -1,6 +1,7 @@
 package com.example.myloteria.ui.home
 
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,10 +21,12 @@ import com.example.myloteria.adapter.GalleryAdapter
 import com.example.myloteria.databinding.FragmentHomeBinding
 import com.example.myloteria.ui.gallery.GalleryViewModel
 import com.google.android.material.snackbar.Snackbar
-import java.util.Date
-import java.util.Timer
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.util.*
 
-class HomeFragment : Fragment() {
+class HomeFragment : Fragment(), TextToSpeech.OnInitListener {
 
     private var _binding: FragmentHomeBinding? = null
 
@@ -31,6 +34,8 @@ class HomeFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
     private lateinit var homeViewModel: HomeViewModel
+
+    private lateinit var tts: TextToSpeech
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,6 +49,7 @@ class HomeFragment : Fragment() {
 //        homeViewModel.text.observe(viewLifecycleOwner) {
 //            textView.text = it
 //        }
+        tts = TextToSpeech(this.context, this)
         return root
     }
 
@@ -60,6 +66,8 @@ class HomeFragment : Fragment() {
                     .apply(RequestOptions().fitCenter().transform(RoundedCorners(25)))
                     .transition(DrawableTransitionOptions.withCrossFade(crossFadeFactory))
                     .into(binding.card)
+
+                speakOut(it.name)
             }else{
                 Glide.with(this)
                     .load(R.drawable.card_back)
@@ -105,12 +113,24 @@ class HomeFragment : Fragment() {
         binding.play.setOnClickListener { view ->
 //            Snackbar.make(view, "Play", Snackbar.LENGTH_LONG)
 //                .setAction("Action", null).show()
-            val isPlay = homeViewModel.play()
-            if(!isPlay) {
-                binding.play.setImageResource(R.drawable.ic_play)
+            if(homeViewModel.initialCardPlay){
+                speakOut("Corre y te vas con")
+                GlobalScope.launch{
+                    delay(2000)
+                    if(!homeViewModel.play()) {
+                        binding.play.setImageResource(R.drawable.ic_play)
+                    }else{
+                        binding.play.setImageResource(R.drawable.ic_pause)
+                    }
+                }
             }else{
-                binding.play.setImageResource(R.drawable.ic_pause)
+                if(!homeViewModel.play()) {
+                    binding.play.setImageResource(R.drawable.ic_play)
+                }else{
+                    binding.play.setImageResource(R.drawable.ic_pause)
+                }
             }
+
         }
         binding.shuffle.setOnClickListener{ view ->
             var snackbar = Snackbar.make(view, "Shuffled", Snackbar.LENGTH_SHORT)
@@ -118,11 +138,39 @@ class HomeFragment : Fragment() {
             snackbar.setAnchorView(R.id.card)
             snackbar.show()
             homeViewModel.shuffleCards()
+            binding.play.setImageResource(R.drawable.ic_play)
         }
     }
 
     override fun onDestroyView() {
+        if (tts.isSpeaking) {
+            tts.stop()
+        }
+        tts.shutdown()
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val result = tts.setLanguage(Locale("es", "MX"))
+
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                // Language data is missing or the language is not supported.
+                println("TTS: Language not supported")
+            } else {
+                // TTS is ready to use.
+                tts.setPitch(3f)
+                tts.setSpeechRate(1f)
+
+                speakOut("Bienvenida a mi loteria")
+            }
+        } else {
+            println("TTS: Initialization failed")
+        }
+    }
+
+    private fun speakOut(text: String) {
+        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "")
     }
 }
