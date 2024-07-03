@@ -21,15 +21,15 @@ import com.example.myloteria.viewmodel.CardViewModel
 
 class GalleryAdapter: ListAdapter<Card, GalleryAdapter.GalleryViewHolder>(DiffCallback()){
     class GalleryViewHolder(view: View): RecyclerView.ViewHolder(view){
-        val idView: TextView = view.findViewById<TextView>(R.id.cardId)
+//        val idView: TextView = view.findViewById<TextView>(R.id.cardId)
         val imageView: ImageView = view.findViewById<ImageView>(R.id.cardImage)
         fun bind(card: Card) {
             Glide.with(imageView.context).load(card.image).apply(
-                RequestOptions().override(100, 100).fitCenter().transform(
-                    RoundedCorners(5)
-                ).placeholder(R.mipmap.ic_launcher_round).error(R.mipmap.ic_launcher_round)
+                RequestOptions().fitCenter().transform(
+                    RoundedCorners(25)
+                ).placeholder(R.drawable.card_back).error(R.drawable.card_back)
             ).into(imageView)
-            idView.text = card.id.toString()
+//            idView.text = card.id.toString()
         }
     }
 
