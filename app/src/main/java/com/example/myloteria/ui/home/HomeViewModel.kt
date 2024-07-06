@@ -26,9 +26,15 @@ class HomeViewModel() : ViewModel() {
 
     val currentCard: LiveData<Card> get() = _currentCard
 
+    private val _progress = MutableLiveData<Long>()
+
+    val progress: LiveData<Long> get() = _progress
+
     private var playState = false
 
     private var time: Long = 5000
+
+    private var tickInterval: Long = 100
 
     private var _history_1 = MutableLiveData<Int>()
     val history_1: LiveData<Int> get() = _history_1
@@ -42,7 +48,7 @@ class HomeViewModel() : ViewModel() {
     private val _fileName = MutableLiveData<String>()
     val fileName: LiveData<String> get() = _fileName
 
-    private var timer:com.example.myloteria.util.Timer = com.example.myloteria.util.Timer(){drawCard()}
+    private var timer:com.example.myloteria.util.Timer = com.example.myloteria.util.Timer(){updateProgress(time)}
 
     private val _text = MutableLiveData<String>().apply {
         value = "This is home Fragment"
@@ -60,12 +66,14 @@ class HomeViewModel() : ViewModel() {
 //        timer.startTimer()
 //        timer.cancelTimer()
         _currentCard.value = Card(0, 0, "")
+        _progress.value =0L
         shuffleCards()
     }
 
     fun setTime(long: Long){
         time = long
     }
+
     fun drawCard(){
         if(cards.value!!.size > 0) {
             _currentCard.value = cards.value!!.get(cards.value!!.size - 1)
@@ -86,7 +94,7 @@ class HomeViewModel() : ViewModel() {
     fun play(): Boolean{
         if(!playState){
             Log.d("HomeViewModel", "Timer Interval set to " + time.toString())
-            timer.startTimer(time)
+            timer.startTimer(tickInterval)
         }else{
             timer.cancelTimer()
         }
@@ -136,5 +144,15 @@ class HomeViewModel() : ViewModel() {
         _fileName.value = _fileName.value!!.lowercase()
         _fileName.value = _fileName.value!!.replace(" ", "_", true)
         _fileName.value = _fileName.value!! + ".3gp"
+    }
+
+    private fun updateProgress(time: Long){
+        val newProgress = (_progress.value?:0L) + tickInterval
+        _progress.value = newProgress
+        Log.d("HomeViewModel", _progress.value.toString())
+        if(newProgress >= time){
+            _progress.value = 0L
+            drawCard()
+        }
     }
 }

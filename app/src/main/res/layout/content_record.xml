@@ -6,6 +6,12 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/my_loteria_back"/>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/playAudio"
         android:layout_width="wrap_content"
@@ -38,6 +44,21 @@
         app:srcCompat="@drawable/ic_delete"
         app:backgroundTint="@color/dark_red"/>
 
+    <ProgressBar
+        android:id="@+id/progressBarRecord"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="0"
+        android:progressTint="@color/design_default_color_primary"
+        app:layout_constraintBottom_toTopOf="@+id/soundImage"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/galleryItemLabel" />
+
     <ImageView
         android:id="@+id/soundImage"
         android:layout_width="200dp"
@@ -55,6 +76,7 @@
         android:layout_height="wrap_content"
         android:text="TextView"
         android:textSize="32sp"
+        android:layout_margin="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

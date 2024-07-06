@@ -48,8 +48,11 @@ class RecordActivity : AppCompatActivity() {
     private var permissionToRecordAccepted = false
     private val permissions: Array<String> = arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private var recording: Boolean = false
+    private var progress: Long = 0L
+    private val tickInterval = 100L
+    private val recordingTime = 3000L
     private var myTimer = Timer(){
-        isRecording()
+        updateProgress(recordingTime)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,12 +63,18 @@ class RecordActivity : AppCompatActivity() {
             ViewModelProvider(this).get(RecordViewModel::class.java)
 
         setContentView(binding.root)
+        binding.contentRecord.progressBarRecord.progress = 0
+        binding.contentRecord.progressBarRecord.max = recordingTime.toInt()
+        binding.contentRecord.progressBarRecord.visibility = INVISIBLE
         binding.contentRecord.recordAudio.setOnClickListener { view ->
             val snackbar = Snackbar.make(view, "Recording", Snackbar.LENGTH_LONG)
                 .setAction("Action", null)
             snackbar.anchorView = binding.contentRecord.soundImage
             snackbar.show()
-            myTimer.startTimer(2500)
+            binding.contentRecord.playAudio.visibility = INVISIBLE
+            binding.contentRecord.recordAudio.visibility = INVISIBLE
+            binding.contentRecord.deleteAudio.visibility = INVISIBLE
+            myTimer.startTimer(tickInterval)
         }
         binding.contentRecord.playAudio.setOnClickListener { view ->
             val snackbar = Snackbar.make(view, "Audio played", Snackbar.LENGTH_LONG)
@@ -103,6 +112,7 @@ class RecordActivity : AppCompatActivity() {
     }
 
     private fun startRecording() {
+        binding.contentRecord.progressBarRecord.visibility = VISIBLE
         Log.d("RecordActivity", "filename " + audioFile)
         mediaRecorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
@@ -121,6 +131,7 @@ class RecordActivity : AppCompatActivity() {
     }
 
     private fun stopRecording() {
+        binding.contentRecord.progressBarRecord.visibility = INVISIBLE
         try{
             binding.contentRecord.recordAudio.visibility = VISIBLE
             binding.contentRecord.playAudio.visibility = VISIBLE
@@ -178,6 +189,17 @@ class RecordActivity : AppCompatActivity() {
             startRecording()
         }
         recording =  !recording
+    }
+
+    private fun updateProgress(time: Long){
+        val newProgress = (progress?:0L) + tickInterval
+        progress = newProgress
+        Log.d("RecordActivity", progress.toString())
+        if(newProgress >= time){
+            progress = 0L
+            isRecording()
+        }
+        binding.contentRecord.progressBarRecord.progress = progress.toInt()
     }
 
 }

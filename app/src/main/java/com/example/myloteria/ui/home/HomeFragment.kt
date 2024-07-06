@@ -9,6 +9,8 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -78,6 +80,10 @@ class HomeFragment : Fragment(), TextToSpeech.OnInitListener {
         val sharedPreferences = requireContext().getSharedPreferences("MyPreferences",
             AppCompatActivity.MODE_PRIVATE
         )
+        binding.progressBar.progress = 0
+        binding.progressBar.max = 1000
+        binding.progressBar.visibility = INVISIBLE
+
         homeViewModel.currentCard.observe(viewLifecycleOwner, Observer { it ->
             if(homeViewModel.haveCurrentCard()) {
                 Glide.with(this)
@@ -134,15 +140,23 @@ class HomeFragment : Fragment(), TextToSpeech.OnInitListener {
                 ).placeholder(R.drawable.card_back).error(R.drawable.card_back)
             ).into(binding.history4)
         })
+        homeViewModel.progress.observe(viewLifecycleOwner, Observer { progress ->
+            Log.d("HomeFragment", progress.toString())
+            binding.progressBar.setProgress(progress.toInt(), true)
+        })
         binding.play.setOnClickListener { view ->
+            binding.progressBar.visibility = VISIBLE
 //            Snackbar.make(view, "Play", Snackbar.LENGTH_LONG)
 //                .setAction("Action", null).show()
-            val playSpeed = sharedPreferences.getInt("speed", 4)
-            homeViewModel.setTime((playSpeed*1000).toLong())
+            val playSpeed = (sharedPreferences.getInt("speed", 4) *1000).toLong()
+            homeViewModel.setTime(playSpeed)
+            binding.progressBar.max = playSpeed.toInt()
+            Log.d("HomeFragment", "max" + playSpeed.toString())
+
             if(homeViewModel.initialCardPlay){
                 speakOut("Corre i te vas con")
                 GlobalScope.launch{
-                    delay(2000)
+                    //delay(2000)
                     if(!homeViewModel.play()) {
                         binding.play.setImageResource(R.drawable.ic_play)
                     }else{
@@ -159,6 +173,7 @@ class HomeFragment : Fragment(), TextToSpeech.OnInitListener {
 
         }
         binding.shuffle.setOnClickListener{ view ->
+            binding.progressBar.visibility = INVISIBLE
             var snackbar = Snackbar.make(view, "Shuffled", Snackbar.LENGTH_SHORT)
                 .setAction("Action", null)
             snackbar.setAnchorView(R.id.card)
