@@ -1,6 +1,7 @@
 package com.example.myloteria.ui.home
 
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,6 +10,8 @@ import com.example.myloteria.R
 import com.example.myloteria.model.Card
 import java.util.*
 import com.example.myloteria.util.Timer
+import android.content.SharedPreferences
+import com.example.myloteria.MainActivity
 
 class HomeViewModel() : ViewModel() {
     var initialCardPlay = true
@@ -25,6 +28,8 @@ class HomeViewModel() : ViewModel() {
 
     private var playState = false
 
+    private var time: Long = 5000
+
     private var _history_1 = MutableLiveData<Int>()
     val history_1: LiveData<Int> get() = _history_1
     private var _history_2 = MutableLiveData<Int>()
@@ -33,6 +38,9 @@ class HomeViewModel() : ViewModel() {
     val history_3: LiveData<Int> get() = _history_3
     private var _history_4 = MutableLiveData<Int>()
     val history_4: LiveData<Int> get() = _history_4
+
+    private val _fileName = MutableLiveData<String>()
+    val fileName: LiveData<String> get() = _fileName
 
     private var timer:com.example.myloteria.util.Timer = com.example.myloteria.util.Timer(){drawCard()}
 
@@ -55,6 +63,9 @@ class HomeViewModel() : ViewModel() {
         shuffleCards()
     }
 
+    fun setTime(long: Long){
+        time = long
+    }
     fun drawCard(){
         if(cards.value!!.size > 0) {
             _currentCard.value = cards.value!!.get(cards.value!!.size - 1)
@@ -74,7 +85,8 @@ class HomeViewModel() : ViewModel() {
 
     fun play(): Boolean{
         if(!playState){
-            timer.startTimer()
+            Log.d("HomeViewModel", "Timer Interval set to " + time.toString())
+            timer.startTimer(time)
         }else{
             timer.cancelTimer()
         }
@@ -117,5 +129,12 @@ class HomeViewModel() : ViewModel() {
         _history_2.value = if(_usedCards.size > 2) _usedCards[_usedCards.size -3].image else R.drawable.card_back
         _history_3.value = if(_usedCards.size > 3) _usedCards[_usedCards.size -4].image else R.drawable.card_back
         _history_4.value = if(_usedCards.size > 4) _usedCards[_usedCards.size -5].image else R.drawable.card_back
+    }
+
+    fun setName(data: String){
+        _fileName.value = data
+        _fileName.value = _fileName.value!!.lowercase()
+        _fileName.value = _fileName.value!!.replace(" ", "_", true)
+        _fileName.value = _fileName.value!! + ".3gp"
     }
 }

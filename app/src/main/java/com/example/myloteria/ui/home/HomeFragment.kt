@@ -1,11 +1,19 @@
 package com.example.myloteria.ui.home
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -24,7 +32,9 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.IOException
 import java.util.*
+import java.io.File
 
 class HomeFragment : Fragment(), TextToSpeech.OnInitListener {
 
@@ -36,6 +46,11 @@ class HomeFragment : Fragment(), TextToSpeech.OnInitListener {
     private lateinit var homeViewModel: HomeViewModel
 
     private lateinit var tts: TextToSpeech
+
+    private lateinit var mediaPlayer: MediaPlayer
+    private val PERMISSION_REQUEST_CODE = 1001
+    private var permissionToRecordAccepted = false
+    private val permissions: Array<String> = arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,10 +70,14 @@ class HomeFragment : Fragment(), TextToSpeech.OnInitListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        requestPermissions()
         homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
         val crossFadeFactory = DrawableCrossFadeFactory.Builder(500)
             .setCrossFadeEnabled(true)
             .build()
+        val sharedPreferences = requireContext().getSharedPreferences("MyPreferences",
+            AppCompatActivity.MODE_PRIVATE
+        )
         homeViewModel.currentCard.observe(viewLifecycleOwner, Observer { it ->
             if(homeViewModel.haveCurrentCard()) {
                 Glide.with(this)
@@ -66,8 +85,13 @@ class HomeFragment : Fragment(), TextToSpeech.OnInitListener {
                     .apply(RequestOptions().fitCenter().transform(RoundedCorners(25)))
                     .transition(DrawableTransitionOptions.withCrossFade(crossFadeFactory))
                     .into(binding.card)
-
-                speakOut(it.name)
+                val customVoice = sharedPreferences.getBoolean("custom", false)
+                if(!customVoice) {
+                    speakOut(it.name)
+                }else{
+                    homeViewModel.setName(homeViewModel.currentCard.value!!.name)
+                    playRecording()
+                }
             }else{
                 Glide.with(this)
                     .load(R.drawable.card_back)
@@ -113,8 +137,10 @@ class HomeFragment : Fragment(), TextToSpeech.OnInitListener {
         binding.play.setOnClickListener { view ->
 //            Snackbar.make(view, "Play", Snackbar.LENGTH_LONG)
 //                .setAction("Action", null).show()
+            val playSpeed = sharedPreferences.getInt("speed", 4)
+            homeViewModel.setTime((playSpeed*1000).toLong())
             if(homeViewModel.initialCardPlay){
-                speakOut("Corre y te vas con")
+                speakOut("Corre i te vas con")
                 GlobalScope.launch{
                     delay(2000)
                     if(!homeViewModel.play()) {
@@ -149,6 +175,9 @@ class HomeFragment : Fragment(), TextToSpeech.OnInitListener {
         tts.shutdown()
         super.onDestroyView()
         _binding = null
+        if (::mediaPlayer.isInitialized) {
+            mediaPlayer.release()
+        }
     }
 
     override fun onInit(status: Int) {
@@ -160,10 +189,10 @@ class HomeFragment : Fragment(), TextToSpeech.OnInitListener {
                 println("TTS: Language not supported")
             } else {
                 // TTS is ready to use.
-                tts.setPitch(3f)
+                tts.setPitch(1f)
                 tts.setSpeechRate(1f)
 
-                speakOut("Bienvenida a mi loteria")
+//                speakOut("Bienvenida a mi loteria")
             }
         } else {
             println("TTS: Initialization failed")
@@ -173,4 +202,46 @@ class HomeFragment : Fragment(), TextToSpeech.OnInitListener {
     private fun speakOut(text: String) {
         tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "")
     }
+
+    private fun playRecording() {
+        val audioFile = "${requireContext().externalCacheDir?.absolutePath}/" + homeViewModel.fileName
+        var file = File(requireContext().externalCacheDir, homeViewModel.fileName.value)
+        if(!file.exists()) {
+            speakOut(homeViewModel.currentCard.value!!.name)
+            Log.d("HomeFragment", "File NOT Found (AI VOICE PLAYING): " + file.absolutePath)
+            return
+        }else{
+            Log.d("HomeFragment", "File Found: " + file.absolutePath)
+        }
+        Log.d("RecordActivity", "filename " + audioFile)
+        mediaPlayer = MediaPlayer().apply {
+            try {
+                setDataSource(file.absolutePath)
+                prepare()
+                start()
+            } catch (e: IOException) {
+                Log.e("AudioPlayTest", "prepare() failed")
+            }
+        }
+    }
+
+    private fun requestPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this.context!!, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted
+            } else {
+                // Permission denied
+            }
+        }
+    }
+
 }

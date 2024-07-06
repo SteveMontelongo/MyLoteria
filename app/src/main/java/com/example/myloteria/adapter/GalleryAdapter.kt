@@ -16,10 +16,12 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.example.myloteria.R
+import com.example.myloteria.`interface`.GalleryOnClick
 import com.example.myloteria.model.Card
 import com.example.myloteria.viewmodel.CardViewModel
 
-class GalleryAdapter: ListAdapter<Card, GalleryAdapter.GalleryViewHolder>(DiffCallback()){
+class GalleryAdapter(listener: GalleryOnClick): ListAdapter<Card, GalleryAdapter.GalleryViewHolder>(DiffCallback()){
+    val _listener = listener
     class GalleryViewHolder(view: View): RecyclerView.ViewHolder(view){
 //        val idView: TextView = view.findViewById<TextView>(R.id.cardId)
         val imageView: ImageView = view.findViewById<ImageView>(R.id.cardImage)
@@ -30,6 +32,7 @@ class GalleryAdapter: ListAdapter<Card, GalleryAdapter.GalleryViewHolder>(DiffCa
                 ).placeholder(R.drawable.card_back).error(R.drawable.card_back)
             ).into(imageView)
 //            idView.text = card.id.toString()
+
         }
     }
 
@@ -44,6 +47,11 @@ class GalleryAdapter: ListAdapter<Card, GalleryAdapter.GalleryViewHolder>(DiffCa
         val card: Card = getItem(position)
         Log.d("GalleryAdapter", "Binding Card: $card")
         holder.bind(card)
+        holder.imageView.setOnClickListener {
+            _listener.itemClick(card.name, card.image)
+        }
+
+
     }
 
 //    override fun getItemCount(): Int {
