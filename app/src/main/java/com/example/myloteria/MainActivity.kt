@@ -139,5 +139,6 @@ class MainActivity : AppCompatActivity() {
         _cardViewModel.createCard(54, R.drawable.la_rana_54, "La Rana")
 
         Cards.addCards(_cardViewModel.retrieveCards())
+        Cards.setGallery(_cardViewModel.retrieveCards())
     }
 }

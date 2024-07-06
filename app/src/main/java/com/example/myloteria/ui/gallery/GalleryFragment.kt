@@ -44,9 +44,10 @@ class GalleryFragment : Fragment(), GalleryOnClick {
         recyclerView.layoutManager = GridLayoutManager(context, 3)
         val galleryAdapter = GalleryAdapter(this)
         recyclerView.adapter = galleryAdapter
-        galleryViewModel.cards.observe(viewLifecycleOwner, { cards ->
-            galleryAdapter.submitList(cards)
-        })
+//        galleryViewModel.cards.observe(viewLifecycleOwner, { cards ->
+//            galleryAdapter.submitList(cards)
+//        })
+        galleryAdapter.submitList(galleryViewModel.loadGallery())
 
     }
 

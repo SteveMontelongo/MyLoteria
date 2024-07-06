@@ -19,6 +19,7 @@ import com.example.myloteria.R
 import com.example.myloteria.`interface`.GalleryOnClick
 import com.example.myloteria.model.Card
 import com.example.myloteria.viewmodel.CardViewModel
+import kotlin.math.absoluteValue
 
 class GalleryAdapter(listener: GalleryOnClick): ListAdapter<Card, GalleryAdapter.GalleryViewHolder>(DiffCallback()){
     val _listener = listener
@@ -26,6 +27,7 @@ class GalleryAdapter(listener: GalleryOnClick): ListAdapter<Card, GalleryAdapter
 //        val idView: TextView = view.findViewById<TextView>(R.id.cardId)
         val imageView: ImageView = view.findViewById<ImageView>(R.id.cardImage)
         fun bind(card: Card) {
+            Glide.with(imageView.context).clear(imageView)
             Glide.with(imageView.context).load(card.image).apply(
                 RequestOptions().fitCenter().transform(
                     RoundedCorners(25)
@@ -44,12 +46,13 @@ class GalleryAdapter(listener: GalleryOnClick): ListAdapter<Card, GalleryAdapter
     }
 
     override fun onBindViewHolder(holder: GalleryViewHolder, position: Int) {
-        val card: Card = getItem(position)
+        val card: Card = getItem(position.absoluteValue)
         Log.d("GalleryAdapter", "Binding Card: $card")
-        holder.bind(card)
         holder.imageView.setOnClickListener {
             _listener.itemClick(card.name, card.image)
         }
+        holder.bind(card)
+
 
 
     }

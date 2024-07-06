@@ -109,6 +109,7 @@ class HomeViewModel() : ViewModel() {
         if(initialCardPlay == false){
             timer.cancelTimer()
             playState = false
+            _progress.value = 1000L
         }
         initialCardPlay = true
         var tempStack: Stack<Card> = Stack()
